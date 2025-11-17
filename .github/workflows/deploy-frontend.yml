@@ -1,0 +1,47 @@
+name: Deploy Next.js Memorial Sass Admin
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
+
+            # Clona ou atualiza o repositório
+            if [ ! -d "/root/memorial-sass-adm/.git" ]; then
+              rm -rf /root/memorial-sass-adm
+              git clone https://github.com/${{ github.repository }} /root/memorial-sass-adm
+            else
+              cd /root/memorial-sass-adm
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            cd /root/memorial-sass-adm
+
+            # Cria o .env
+            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
+
+            # Para containers antigos do projeto (evita conflito de nomes)
+            docker compose down --remove-orphans
+
+            # Build e sobe o container
+            docker compose build --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            docker compose up -d --force-recreate
+          EOF

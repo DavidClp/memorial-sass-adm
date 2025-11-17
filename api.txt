@@ -1,0 +1,376 @@
+================================================================================
+ETERNOMEMORIAL API DOCUMENTATION
+Estrutura de Backend para Agente IA
+================================================================================
+
+VISÃO GERAL:
+Este documento descreve toda a estrutura de API necessária para o backend do
+EternoMemorial. O frontend foi desenvolvido com essas especificações exatas,
+então o backend deve seguir essa estrutura para compatibilidade total sem
+alterações no frontend.
+
+================================================================================
+1. AUTENTICAÇÃO
+================================================================================
+
+ENDPOINT: POST /auth/login
+DESCRIÇÃO: Autentica usuário admin
+REQUISIÇÃO:
+{
+  "email": "string (required)",
+  "senha": "string (required)"
+}
+
+RESPOSTA (200 OK):
+{
+  "success": true,
+  "token": "string (JWT token)",
+  "user": {
+    "email": "string",
+    "name": "string"
+  }
+}
+
+RESPOSTA (401 UNAUTHORIZED):
+{
+  "success": false,
+  "error": "Credenciais inválidas"
+}
+
+AUTENTICAÇÃO:
+- Token JWT deve ser enviado no header: Authorization: Bearer {token}
+- Token deve ser armazenado no localStorage do cliente sob a chave 'eternomemorial_token'
+- Token será validado em todas as operações de CRUD
+
+
+================================================================================
+2. SCHEMA DO BANCO DE DADOS
+================================================================================
+
+TABELA: users
+Colunas:
+  - id: UUID (primary key)
+  - email: VARCHAR(255) (unique, required)
+  - senha: VARCHAR(255) (hashed, required)
+  - name: VARCHAR(255) (required)
+  - created_at: TIMESTAMP (default: current_timestamp)
+  - updated_at: TIMESTAMP (default: current_timestamp)
+
+TABELA: memoriais
+Colunas:
+  - id: UUID (primary key)
+  - nome: VARCHAR(255) (required)
+  - biografia: TEXT (required)
+  - slug: VARCHAR(255) (unique, required, format: lowercase_with_underscores)
+  - birth_date: TIMESTAMP
+  - departure_date: TIMESTAMP
+  - fotoMainUrl: LONGBLOB ou TEXT (url string, required)
+  - corPrincipal: VARCHAR(7) (hex color code, required, format: #RRGGBB)
+  - galeriaFotos: JSON (array of url strings, required, can be empty array)
+  - created_at: TIMESTAMP (default: current_timestamp)
+  - updated_at: TIMESTAMP (default: current_timestamp)
+
+ÍNDICES:
+  - CREATE UNIQUE INDEX idx_slug ON memoriais(slug)
+  - CREATE INDEX idx_created_at ON memoriais(created_at DESC)
+
+
+================================================================================
+3. ENDPOINTS DO MEMORIAL
+================================================================================
+
+3.1 LISTAR TODOS OS MEMORIAIS
+ENDPOINT: GET /memoriais
+AUTENTICAÇÃO: Não requerida (pública)
+DESCRIÇÃO: Retorna lista de todos os memoriais
+
+RESPOSTA (200 OK):
+[
+  {
+    "id": "uuid-string",
+    "nome": "José Silva",
+    "biografia": "Homem dedicado, pai amoroso...",
+    "slug": "jose_silva",
+    "fotoMainUrl": "https://biko.s3.amazonaws.com/memorial/...",
+    "corPrincipal": "#7b9bc4",
+    "galeriaFotos": [
+      "https://biko.s3.amazonaws.com/memorial/.....",
+      "https://biko.s3.amazonaws.com/memorial/..."
+    ]
+  }
+]
+
+---
+
+3.2 OBTER MEMORIAL POR SLUG
+ENDPOINT: GET /memoriais/{slug}
+AUTENTICAÇÃO: Não requerida (pública)
+DESCRIÇÃO: Retorna um memorial específico pelo slug
+
+PARÂMETROS:
+  - slug: string (path parameter, required)
+
+RESPOSTA (200 OK):
+{
+  "id": "uuid-string",
+  "nome": "José Silva",
+  "biografia": "Homem dedicado, pai amoroso...",
+  "slug": "jose_silva",
+  "fotoMainUrl": "https://biko.s3.amazonaws.com/memorial/...",
+  "corPrincipal": "#7b9bc4",
+  "galeriaFotos": [
+    "https://biko.s3.amazonaws.com/memorial/...",
+    "https://biko.s3.amazonaws.com/memorial/..."
+  ]
+}
+
+RESPOSTA (404 NOT FOUND):
+{
+  "error": "Memorial não encontrado"
+}
+
+---
+
+3.3 CRIAR NOVO MEMORIAL
+ENDPOINT: POST /memoriais
+AUTENTICAÇÃO: REQUERIDA (Bearer Token)
+DESCRIÇÃO: Cria um novo memorial
+
+REQUISIÇÃO (Content-Type: application/json):
+{
+  "nome": "string (required, min: 1, max: 255)",
+  "biografia": "string (required, min: 10, max: 10000)",
+  "slug": "string (required, unique, pattern: ^[a-z0-9_]+$)",
+  "fotoMainUrl": "string (required, base64 image string)",
+  "corPrincipal": "string (required, format: #RRGGBB)",
+  "galeriaFotos": ["string (base64)"] (required, can be empty array)
+}
+
+RESPOSTA (201 CREATED):
+{
+  "id": "uuid-string",
+  "nome": "José Silva",
+  "biografia": "Homem dedicado...",
+  "slug": "jose_silva",
+  "fotoMainUrl": "https://biko.s3.amazonaws.com/memorial/...",
+  "corPrincipal": "#7b9bc4",
+  "galeriaFotos": []
+}
+
+ERROS:
+- 400 BAD REQUEST: Validação falhou (campos obrigatórios, formato inválido)
+- 409 CONFLICT: Slug já existe
+- 401 UNAUTHORIZED: Token inválido ou não fornecido
+- 500 INTERNAL SERVER ERROR: Erro ao processar imagens
+
+
+---
+
+3.4 ATUALIZAR MEMORIAL
+ENDPOINT: PUT /memoriais/{slug}
+AUTENTICAÇÃO: REQUERIDA (Bearer Token)
+DESCRIÇÃO: Atualiza um memorial existente
+
+PARÂMETROS:
+  - slug: string (path parameter, required, identificador original)
+
+REQUISIÇÃO (Content-Type: application/json):
+Qualquer um desses campos é opcional:
+{
+  "nome": "string (optional)",
+  "biografia": "string (optional)",
+  "slug": "string (optional, unique, pattern: ^[a-z0-9_]+$)",
+  "fotoMainUrl": "string (optional, base64 image string)",
+  "corPrincipal": "string (optional, format: #RRGGBB)",
+  "galeriaFotos": ["string (base64)"] (optional)
+}
+
+RESPOSTA (200 OK):
+{
+  "id": "uuid-string",
+  "nome": "José Silva",
+  "biografia": "Homem dedicado...",
+  "slug": "jose_silva",
+  "fotoMainUrl": "https://biko.s3.amazonaws.com/memorial/...",
+  "corPrincipal": "#7b9bc4",
+  "galeriaFotos": []
+}
+
+ERROS:
+- 400 BAD REQUEST: Validação falhou
+- 404 NOT FOUND: Memorial não encontrado
+- 409 CONFLICT: Novo slug já existe
+- 401 UNAUTHORIZED: Token inválido
+
+---
+
+3.5 DELETAR MEMORIAL
+ENDPOINT: DELETE /memoriais/{slug}
+AUTENTICAÇÃO: REQUERIDA (Bearer Token)
+DESCRIÇÃO: Deleta um memorial, incluindo as imagens na s3
+
+PARÂMETROS:
+  - slug: string (path parameter, required)
+
+RESPOSTA (200 OK):
+{
+  "success": true,
+  "message": "Memorial deletado com sucesso"
+}
+
+ERROS:
+- 404 NOT FOUND: Memorial não encontrado
+- 401 UNAUTHORIZED: Token inválido
+
+
+================================================================================
+4. PROCESSAMENTO DE IMAGENS
+================================================================================
+
+O frontend converte todas as imagens para base64 antes de enviar para a API.
+A API  precisa enviar as imagens para s3 storage,  arquivo de configuração s3 dentro da pasta shred/helpers.
+
+FORMATO ESPERADO:
+"https://biko.s3.amazonaws.com/memorial/AAAANSUhEUgA..."
+
+REQUISITOS:
+- Aceitar base64 em fotoMainUrl e galeriaFotos
+- Armazenar em storage externo e salvar no banco as url
+- Retornar url quando solicitado via GET
+
+
+================================================================================
+5. VALIDAÇÕES REQUERIDAS
+================================================================================
+
+NOME:
+- Campo obrigatório
+- Mínimo: 1 caractere
+- Máximo: 255 caracteres
+
+BIOGRAFIA:
+- Campo obrigatório
+- Mínimo: 10 caracteres
+- Máximo: 10000 caracteres
+
+SLUG:
+- Campo obrigatório
+- Deve ser único no banco
+- Apenas letras minúsculas, números e underscore
+- Padrão regex: ^[a-z0-9_]+$
+- Máximo: 100 caracteres
+
+FOTO PRINCIPAL (fotoMainUrl):
+- Campo obrigatório
+- Deve ser string base64 válida
+
+COR PRINCIPAL (corPrincipal):
+- Campo obrigatório
+- Formato: #RRGGBB (hex color)
+- Validação regex: ^#[0-9A-Fa-f]{6}$
+
+GALERIA FOTOS (galeriaFotos):
+- Campo obrigatório (mas pode ser array vazio [])
+- Array de strings base64
+
+
+================================================================================
+6. TRATAMENTO DE ERROS
+================================================================================
+
+Todos os erros devem retornar em JSON:
+
+FORMATO PADRÃO:
+{
+  "error": "string (mensagem de erro)",
+  "code": "string (código do erro, opcional)",
+  "details": {} (objeto com detalhes adicionais, opcional)
+}
+
+HTTP STATUS CODES A USAR:
+- 200 OK: Operação bem-sucedida (GET, PUT, DELETE)
+- 201 CREATED: Recurso criado com sucesso (POST)
+- 400 BAD REQUEST: Validação falhou, dados inválidos
+- 401 UNAUTHORIZED: Token ausente ou inválido
+- 404 NOT FOUND: Recurso não encontrado
+- 409 CONFLICT: Conflito (ex: slug duplicado)
+- 500 INTERNAL SERVER ERROR: Erro no servidor
+
+
+================================================================================
+7. CORS E HEADERS
+================================================================================
+
+HEADERS REQUERIDOS NAS RESPOSTAS:
+- Content-Type: application/json
+- Access-Control-Allow-Origin: * (ou domínio específico do frontend)
+- Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+- Access-Control-Allow-Headers: Content-Type, Authorization
+
+REQUISIÇÕES DO FRONTEND INCLUEM:
+- Authorization: Bearer {token} (em operações autenticadas)
+- Content-Type: application/json
+
+
+================================================================================
+10. EXEMPLO COMPLETO DE FLUXO
+================================================================================
+
+1. USUÁRIO FAZ LOGIN:
+   POST /auth/login
+   { "email": "admin@eternomemorial.com", "senha": "senha123" }
+   RESPOSTA: { "success": true, "token": "eyJhbGciOiJIUzI1NiI..." }
+
+2. FRONTEND SALVA TOKEN:
+   localStorage.setItem('eternomemorial_token', token)
+
+3. USUÁRIO CRIA MEMORIAL:
+   POST /memoriais
+   Header: Authorization: Bearer eyJhbGciOiJIUzI1NiI...
+   {
+     "nome": "João Silva",
+     "biografia": "Uma pessoa incrível...",
+     "slug": "joao_silva",
+     "corPrincipal": "#7b9bc4",
+     "fotoMainUrl": "data:image/jpeg;base64,/9j/4AAQSkZJ...",
+     "galeriaFotos": [
+       "data:image/jpeg;base64,/9j/4AAQSkZJ...",
+       "data:image/jpeg;base64,iVBORw0KGgo..."
+     ]
+   }
+   RESPOSTA: { "id": "uuid", "nome": "João Silva", ... }
+
+4. VISITANTE ACESSA MEMORIAL PÚBLICO:
+   GET /memoriais/joao_silva
+   RESPOSTA: { "id": "uuid", "nome": "João Silva", ... }
+
+5. ADMIN ATUALIZA MEMORIAL:
+   PUT /memoriais/joao_silva
+   Header: Authorization: Bearer eyJhbGciOiJIUzI1NiI...
+   {
+     "biografia": "Biografia atualizada..."
+   }
+   RESPOSTA: { "id": "uuid", "nome": "João Silva", "biografia": "..." }
+
+6. ADMIN DELETA MEMORIAL:
+   DELETE /memoriais/joao_silva
+   Header: Authorization: Bearer eyJhbGciOiJIUzI1NiI...
+   RESPOSTA: { "success": true, "message": "Memorial deletado com sucesso" }
+
+
+================================================================================
+11. DEPENDÊNCIAS RECOMENDADAS (Node.js + Express)
+================================================================================
+
+Express: Servidor HTTP
+jsonwebtoken: Geração e validação de JWT
+bcryptjs: Hash de senha
+uuid: Geração de UUIDs
+joi ou zod: Validação de dados
+cors: CORS middleware
+dotenv: Variáveis de ambiente
+
+
+================================================================================
+FIM DO DOCUMENTO
+================================================================================
