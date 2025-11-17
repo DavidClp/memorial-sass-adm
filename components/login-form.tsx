@@ -76,7 +76,6 @@ export function LoginForm() {
             disabled={isLoading}
             className="bg-white border-muted"
           />
-          <p className="text-xs text-foreground/50 mt-1">Demo: 1234</p>
         </div>
 
         <Button
