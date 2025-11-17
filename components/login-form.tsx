@@ -56,13 +56,11 @@ export function LoginForm() {
           <Input
             id="email"
             type="email"
-            placeholder="admin@eternomemorial.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
             className="bg-white border-muted"
           />
-          <p className="text-xs text-foreground/50 mt-1">Demo: admin@eternomemorial.com</p>
         </div>
 
         <div>
@@ -89,11 +87,6 @@ export function LoginForm() {
           {isLoading ? "Entrando..." : "Entrar"}
         </Button>
       </form>
-
-      <div className="mt-6 pt-6 border-t border-muted text-center text-sm text-foreground/60">
-        <p>Credenciais de demonstração:</p>
-        <p className="font-mono text-xs mt-2">admin@eternomemorial.com / 1234</p>
-      </div>
     </Card>
   )
 }
