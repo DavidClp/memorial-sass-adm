@@ -37,7 +37,7 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md mx-auto p-8 bg-background border-muted">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-serif font-bold text-primary mb-2">EternoMemorial</h1>
+        <h1 className="text-3xl font-serif font-bold text-primary mb-2">Memorizando</h1>
         <p className="text-foreground/70">Acesso ao painel administrativo</p>
       </div>
 

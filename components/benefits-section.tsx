@@ -25,7 +25,7 @@ export function BenefitsSection() {
     <section className="bg-muted py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-3xl font-serif font-bold text-center text-foreground mb-16">
-          Por que escolher EternoMemorial?
+          Por que escolher Memorizando?
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {benefits.map((benefit, idx) => {

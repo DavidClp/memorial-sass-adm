@@ -7,9 +7,9 @@ const lora = Lora({ subsets: ["latin"] })
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "EternoMemorial - Guarde para sempre as memórias",
+  title: "Memorizando - Guarde para sempre as memórias",
   description: "Crie uma página personalizada para homenagear pessoas especiais",
-    generator: 'v0.app'
+  generator: 'v0.app'
 }
 
 export default function RootLayout({

@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Memorial - EternoMemorial",
+  title: "Memorial - Memorizando",
   description: "Um memorial personalizado em homenagem a quem você ama",
 }
 

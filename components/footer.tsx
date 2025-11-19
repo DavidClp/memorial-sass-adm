@@ -8,7 +8,7 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="font-serif font-bold text-lg mb-4">EternoMemorial</h3>
+            <h3 className="font-serif font-bold text-lg mb-4">Memorizando</h3>
             <p className="text-white/80">Guardando memórias com amor e respeito.</p>
           </div>
           <div>
@@ -58,7 +58,7 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t border-white/20 pt-8 text-center text-white/70">
-          <p>&copy; {currentYear} EternoMemorial. Todos os direitos reservados.</p>
+          <p>&copy; {currentYear} Memorizando. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>
