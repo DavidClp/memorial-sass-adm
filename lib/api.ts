@@ -6,6 +6,10 @@ export interface Memorial {
   fotoMainUrl: string
   corPrincipal: string
   galeriaFotos: string[]
+  galeriaVideos?: string[]
+  anoNascimento?: number | null
+  anoMorte?: number | null
+  causaMorte?: string | null
 }
 
 export interface LoginRequest {
@@ -110,6 +114,32 @@ export const api = {
       }
       reader.onerror = () => {
         reject(new Error("Erro ao processar imagem"))
+      }
+      reader.readAsDataURL(file)
+    })
+  },
+
+  // Process video to convert to base64
+  processVideo: async (file: File): Promise<string> => {
+    // Validar tamanho máximo (50MB)
+    const MAX_SIZE = 50 * 1024 * 1024
+    if (file.size > MAX_SIZE) {
+      throw new Error(`Vídeo muito grande. Tamanho máximo: ${MAX_SIZE / (1024 * 1024)}MB`)
+    }
+
+    // Validar tipo de vídeo
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime']
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error(`Tipo de vídeo não permitido. Tipos permitidos: ${allowedTypes.join(', ')}`)
+    }
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        resolve(reader.result as string)
+      }
+      reader.onerror = () => {
+        reject(new Error("Erro ao processar vídeo"))
       }
       reader.readAsDataURL(file)
     })

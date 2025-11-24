@@ -79,6 +79,17 @@ export default function MemorialPage() {
             />
             <div className="p-8 text-foreground relative bg-muted" /* style={{ backgroundColor: memorial.corPrincipal }} */>
               <h1 className="text-4xl md:text-5xl font-serif font-bold mb-2">{memorial.nome}</h1>
+              {(memorial.anoNascimento || memorial.anoMorte) && (
+                <div className="text-xl text-foreground/80 mb-4">
+                  {memorial.anoNascimento && memorial.anoMorte ? (
+                    <span>{memorial.anoNascimento} - {memorial.anoMorte}</span>
+                  ) : memorial.anoNascimento ? (
+                    <span>Nascido em {memorial.anoNascimento}</span>
+                  ) : (
+                    <span>Falecido em {memorial.anoMorte}</span>
+                  )}
+                </div>
+              )}
               <div className="flex gap-2 flex-wrap mt-4">
                 <span className="inline-block px-3 py-1 bg-white/60 rounded-full text-sm">Sempre lembrado</span>
               </div>
@@ -92,8 +103,22 @@ export default function MemorialPage() {
         </section>
 
         {/* Gallery */}
-        {memorial.galeriaFotos && memorial.galeriaFotos.length > 0 && (
-          <MemorialGallery fotos={memorial.galeriaFotos} nome={memorial.nome} />
+        {((memorial.galeriaFotos && memorial.galeriaFotos.length > 0) || (memorial.galeriaVideos && memorial.galeriaVideos.length > 0)) && (
+          <MemorialGallery 
+            fotos={memorial.galeriaFotos || []} 
+            videos={memorial.galeriaVideos || []}
+            nome={memorial.nome} 
+          />
+        )}
+
+        {/* Causa da Morte */}
+        {memorial.causaMorte && (
+          <section className="mt-16">
+            <div className="bg-background rounded-lg p-8 shadow-sm border border-muted">
+              <h2 className="text-2xl font-serif font-bold text-foreground mb-4">Causa da Morte</h2>
+              <div className="prose prose-lg max-w-none text-foreground/80 whitespace-pre-wrap">{memorial.causaMorte}</div>
+            </div>
+          </section>
         )}
 
         {/* Footer Section */}

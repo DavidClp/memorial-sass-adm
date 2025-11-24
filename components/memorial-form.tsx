@@ -23,6 +23,10 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
   const [fotoMainFile, setFotoMainFile] = useState<File | null>(null)
   const [fotoMainPreview, setFotoMainPreview] = useState("")
   const [galeriaFotos, setGaleriaFotos] = useState<{ file?: File; url: string }[]>([])
+  const [galeriaVideos, setGaleriaVideos] = useState<{ file?: File; url: string }[]>([])
+  const [anoNascimento, setAnoNascimento] = useState<string>("")
+  const [anoMorte, setAnoMorte] = useState<string>("")
+  const [causaMorte, setCausaMorte] = useState<string>("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
@@ -34,6 +38,10 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
       setCorPrincipal(initialData.corPrincipal)
       setFotoMainPreview(initialData.fotoMainUrl)
       setGaleriaFotos(initialData.galeriaFotos.map((url) => ({ url })))
+      setGaleriaVideos((initialData.galeriaVideos || []).map((url) => ({ url })))
+      setAnoNascimento(initialData.anoNascimento?.toString() || "")
+      setAnoMorte(initialData.anoMorte?.toString() || "")
+      setCausaMorte(initialData.causaMorte || "")
     }
   }, [initialData])
 
@@ -88,6 +96,48 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
     setGaleriaFotos(galeriaFotos.filter((_, i) => i !== index))
   }
 
+  const handleAddGaleriaVideo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime']
+      const errors: string[] = []
+      
+      Array.from(files).forEach((file) => {
+        if (file.type.startsWith("video/")) {
+          if (!allowedTypes.includes(file.type)) {
+            errors.push(`Tipo de vídeo não permitido: ${file.name}. Tipos permitidos: ${allowedTypes.join(', ')}`)
+            return
+          }
+          if (file.size > MAX_SIZE) {
+            errors.push(`Vídeo muito grande: ${file.name}. Tamanho máximo: ${MAX_SIZE / (1024 * 1024)}MB`)
+            return
+          }
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            setGaleriaVideos((prev) => [...prev, { file, url: reader.result as string }])
+          }
+          reader.onerror = () => {
+            errors.push(`Erro ao processar vídeo: ${file.name}`)
+          }
+          reader.readAsDataURL(file)
+        } else if (file) {
+          errors.push(`Arquivo não é um vídeo: ${file.name}`)
+        }
+      })
+      
+      if (errors.length > 0) {
+        setError(errors.join('; '))
+      } else {
+        setError("")
+      }
+    }
+  }
+
+  const handleRemoveVideo = (index: number) => {
+    setGaleriaVideos(galeriaVideos.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -105,6 +155,15 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
         }),
       )
 
+      const galeriaVideosProcessed = await Promise.all(
+        galeriaVideos.map(async (video) => {
+          if (video.file) {
+            return await api.processVideo(video.file)
+          }
+          return video.url
+        }),
+      )
+
       const data = {
         nome,
         biografia,
@@ -112,6 +171,10 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
         corPrincipal,
         fotoMainUrl,
         galeriaFotos: galeriaFotosProcessed,
+        galeriaVideos: galeriaVideosProcessed,
+        anoNascimento: anoNascimento ? parseInt(anoNascimento) : null,
+        anoMorte: anoMorte ? parseInt(anoMorte) : null,
+        causaMorte: causaMorte || null,
       }
 
       if (initialData) {
@@ -178,6 +241,49 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
             disabled={isLoading}
             required
             rows={5}
+            className="w-full px-3 py-2 border border-muted rounded-md bg-white text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Ano de Nascimento</label>
+            <Input
+              type="number"
+              value={anoNascimento}
+              onChange={(e) => setAnoNascimento(e.target.value)}
+              placeholder="Ex: 1950"
+              disabled={isLoading}
+              min="1000"
+              max="3000"
+              className="bg-white border-muted"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Ano da Morte</label>
+            <Input
+              type="number"
+              value={anoMorte}
+              onChange={(e) => setAnoMorte(e.target.value)}
+              placeholder="Ex: 2023"
+              disabled={isLoading}
+              min="1000"
+              max="3000"
+              className="bg-white border-muted"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Causa da Morte</label>
+          <textarea
+            value={causaMorte}
+            onChange={(e) => setCausaMorte(e.target.value)}
+            placeholder="Descreva a causa da morte..."
+            disabled={isLoading}
+            maxLength={500}
+            rows={3}
             className="w-full px-3 py-2 border border-muted rounded-md bg-white text-foreground placeholder:text-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
         </div>
@@ -270,6 +376,51 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
                     <button
                       type="button"
                       onClick={() => handleRemoveFoto(idx)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Galeria de Vídeos</label>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 border-2 border-dashed border-muted rounded-lg p-4 cursor-pointer hover:border-primary/50 transition">
+              <input
+                type="file"
+                accept="video/mp4,video/webm,video/quicktime"
+                multiple
+                onChange={handleAddGaleriaVideo}
+                disabled={isLoading}
+                className="hidden"
+                id="galeria-video-input"
+              />
+              <label
+                htmlFor="galeria-video-input"
+                className="flex-1 flex items-center gap-2 cursor-pointer text-sm text-foreground/60"
+              >
+                <Upload className="w-5 h-5" />
+                Clique para selecionar múltiplos vídeos (máx. 50MB cada)
+              </label>
+            </div>
+
+            {galeriaVideos.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {galeriaVideos.map((video, idx) => (
+                  <div key={idx} className="relative group">
+                    <video
+                      src={video.url}
+                      className="w-full h-32 object-cover rounded-lg"
+                      controls
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVideo(idx)}
                       className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition"
                     >
                       <X className="w-4 h-4" />
