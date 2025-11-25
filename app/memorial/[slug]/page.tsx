@@ -79,14 +79,16 @@ export default function MemorialPage() {
             />
             <div className="p-8 text-foreground relative bg-muted" /* style={{ backgroundColor: memorial.corPrincipal }} */>
               <h1 className="text-4xl md:text-5xl font-serif font-bold mb-2">{memorial.nome}</h1>
-              {(memorial.anoNascimento || memorial.anoMorte) && (
+              {(memorial.dataNascimento || memorial.dataMorte) && (
                 <div className="text-xl text-foreground/80 mb-4">
-                  {memorial.anoNascimento && memorial.anoMorte ? (
-                    <span>{memorial.anoNascimento} - {memorial.anoMorte}</span>
-                  ) : memorial.anoNascimento ? (
-                    <span>Nascido em {memorial.anoNascimento}</span>
+                  {memorial.dataNascimento && memorial.dataMorte ? (
+                    <span>
+                      {new Date(memorial.dataNascimento).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(memorial.dataMorte).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  ) : memorial.dataNascimento ? (
+                    <span>Nascido em {new Date(memorial.dataNascimento).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   ) : (
-                    <span>Falecido em {memorial.anoMorte}</span>
+                    <span>Falecido em {new Date(memorial.dataMorte).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   )}
                 </div>
               )}

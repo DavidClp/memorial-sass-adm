@@ -7,8 +7,8 @@ export interface Memorial {
   corPrincipal: string
   galeriaFotos: string[]
   galeriaVideos?: string[]
-  anoNascimento?: number | null
-  anoMorte?: number | null
+  dataNascimento?: string | null
+  dataMorte?: string | null
   causaMorte?: string | null
 }
 

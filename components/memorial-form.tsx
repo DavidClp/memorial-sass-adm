@@ -24,8 +24,8 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
   const [fotoMainPreview, setFotoMainPreview] = useState("")
   const [galeriaFotos, setGaleriaFotos] = useState<{ file?: File; url: string }[]>([])
   const [galeriaVideos, setGaleriaVideos] = useState<{ file?: File; url: string }[]>([])
-  const [anoNascimento, setAnoNascimento] = useState<string>("")
-  const [anoMorte, setAnoMorte] = useState<string>("")
+  const [dataNascimento, setDataNascimento] = useState<string>("")
+  const [dataMorte, setDataMorte] = useState<string>("")
   const [causaMorte, setCausaMorte] = useState<string>("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -39,8 +39,19 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
       setFotoMainPreview(initialData.fotoMainUrl)
       setGaleriaFotos(initialData.galeriaFotos.map((url) => ({ url })))
       setGaleriaVideos((initialData.galeriaVideos || []).map((url) => ({ url })))
-      setAnoNascimento(initialData.anoNascimento?.toString() || "")
-      setAnoMorte(initialData.anoMorte?.toString() || "")
+      // Converter datas do formato ISO para YYYY-MM-DD (formato do input date)
+      if (initialData.dataNascimento) {
+        const date = new Date(initialData.dataNascimento)
+        setDataNascimento(date.toISOString().split('T')[0])
+      } else {
+        setDataNascimento("")
+      }
+      if (initialData.dataMorte) {
+        const date = new Date(initialData.dataMorte)
+        setDataMorte(date.toISOString().split('T')[0])
+      } else {
+        setDataMorte("")
+      }
       setCausaMorte(initialData.causaMorte || "")
     }
   }, [initialData])
@@ -172,8 +183,9 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
         fotoMainUrl,
         galeriaFotos: galeriaFotosProcessed,
         galeriaVideos: galeriaVideosProcessed,
-        anoNascimento: anoNascimento ? parseInt(anoNascimento) : null,
-        anoMorte: anoMorte ? parseInt(anoMorte) : null,
+        // Enviar datas como strings no formato YYYY-MM-DD
+        dataNascimento: dataNascimento || null,
+        dataMorte: dataMorte || null,
         causaMorte: causaMorte || null,
       }
 
@@ -247,29 +259,23 @@ export function MemorialForm({ onSuccess, onCancel, initialData }: MemorialFormP
 
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Ano de Nascimento</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Data de Nascimento</label>
             <Input
-              type="number"
-              value={anoNascimento}
-              onChange={(e) => setAnoNascimento(e.target.value)}
-              placeholder="Ex: 1950"
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
               disabled={isLoading}
-              min="1000"
-              max="3000"
               className="bg-white border-muted"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Ano da Morte</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Data da Morte</label>
             <Input
-              type="number"
-              value={anoMorte}
-              onChange={(e) => setAnoMorte(e.target.value)}
-              placeholder="Ex: 2023"
+              type="date"
+              value={dataMorte}
+              onChange={(e) => setDataMorte(e.target.value)}
               disabled={isLoading}
-              min="1000"
-              max="3000"
               className="bg-white border-muted"
             />
           </div>
