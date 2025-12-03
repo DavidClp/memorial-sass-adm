@@ -17,6 +17,26 @@ export interface LoginRequest {
   senha: string
 }
 
+export interface Comentario {
+  id: string
+  memorialId: string
+  nome?: string
+  texto: string
+  criadoEm: string
+}
+
+export interface ComentariosResponse {
+  comentarios: Comentario[]
+  total: number
+  pagina: number
+  totalPaginas: number
+}
+
+export interface CreateComentarioRequest {
+  nome?: string
+  texto: string
+}
+
 const TOKEN_KEY = 'eternomemorial_token'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
@@ -142,6 +162,21 @@ export const api = {
         reject(new Error("Erro ao processar vídeo"))
       }
       reader.readAsDataURL(file)
+    })
+  },
+
+  // Get comentarios by memorial slug
+  getComentarios: async (slug: string, pagina: number = 1, limite: number = 5) => {
+    return await fetchJson<ComentariosResponse>(
+      `/memoriais/${encodeURIComponent(slug)}/comentarios?page=${pagina}&limit=${limite}`
+    )
+  },
+
+  // Create comentario
+  createComentario: async (slug: string, data: CreateComentarioRequest) => {
+    return await fetchJson<Comentario>(`/memoriais/${encodeURIComponent(slug)}/comentarios`, {
+      method: 'POST',
+      body: JSON.stringify(data),
     })
   },
 }

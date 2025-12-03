@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from 'next/navigation'
 import { api, type Memorial } from "@/lib/api"
 import { MemorialGallery } from "@/components/memorial-gallery"
+import { MemorialComments } from "@/components/memorial-comments"
 import { ArrowLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 
@@ -87,9 +88,9 @@ export default function MemorialPage() {
                     </span>
                   ) : memorial.dataNascimento ? (
                     <span>Nascido em {new Date(memorial.dataNascimento).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                  ) : (
+                  ) : memorial.dataMorte ? (
                     <span>Falecido em {new Date(memorial.dataMorte).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                  )}
+                  ) : null}
                 </div>
               )}
               <div className="flex gap-2 flex-wrap mt-4">
@@ -105,7 +106,7 @@ export default function MemorialPage() {
         </section>
 
         {/* Gallery */}
-        {((memorial.galeriaFotos && memorial.galeriaFotos.length > 0) || (memorial.galeriaVideos && memorial.galeriaVideos.length > 0)) && (
+        {( (memorial.galeriaFotos && memorial.galeriaFotos.length > 0) || (memorial.galeriaVideos && memorial.galeriaVideos.length > 0)) && (
           <MemorialGallery 
             fotos={memorial.galeriaFotos || []} 
             videos={memorial.galeriaVideos || []}
@@ -122,6 +123,9 @@ export default function MemorialPage() {
             </div>
           </section>
         )}
+
+        {/* Comentários */}
+        <MemorialComments memorialSlug={slug} />
 
         {/* Footer Section */}
         <section className="mt-16 pt-12 border-t border-muted text-center">
