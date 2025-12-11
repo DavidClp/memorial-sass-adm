@@ -95,7 +95,7 @@ export function MemorialComments({ memorialSlug }: MemorialCommentsProps) {
   }
 
   return (
-    <section className="mt-16">
+    <section className="mt-10">
       <div className="bg-background rounded-lg p-8 shadow-sm border border-muted">
         <div className="flex items-center gap-2 mb-6">
           <Heart className="w-5 h-5 text-foreground/70" />

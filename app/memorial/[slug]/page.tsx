@@ -7,6 +7,7 @@ import { MemorialGallery } from "@/components/memorial-gallery"
 import { MemorialComments } from "@/components/memorial-comments"
 import { ArrowLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function MemorialPage() {
   const params = useParams()
@@ -79,44 +80,82 @@ export default function MemorialPage() {
               className="memorial-main-photo w-full h-96 object-cover"
             />
             <div className="p-8 text-foreground relative bg-muted" /* style={{ backgroundColor: memorial.corPrincipal }} */>
-              <h1 className="text-4xl md:text-5xl font-serif font-bold mb-2">{memorial.nome}</h1>
-              {(memorial.dataNascimento || memorial.dataMorte) && (
-                <div className="text-xl text-foreground/80 mb-4">
-                  {memorial.dataNascimento && memorial.dataMorte ? (
-                    <span>
-                      {new Date(memorial.dataNascimento).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(memorial.dataMorte).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              <h1 className="text-4xl md:text-5xl text-center font-serif font-bold mb-6">{memorial.nome}</h1>
+              <div className="text-xl text-foreground/80 mb-6 flex flex-col items-center  gap-2">
+                {memorial.dataNascimento && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-500">
+                      {/* Ícone nascimento */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 text-black"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 2l2.9 6.9L22 9.8l-5 5 1.2 7.2L12 18l-6.2 3.9L7 14.8l-5-5 7.1-1z"
+                        />
+                      </svg>
                     </span>
-                  ) : memorial.dataNascimento ? (
-                    <span>Nascido em {new Date(memorial.dataNascimento).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                  ) : memorial.dataMorte ? (
-                    <span>Falecido em {new Date(memorial.dataMorte).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                  ) : null}
-                </div>
-              )}
+                    <span>{new Date(memorial.dataNascimento).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' - ')}</span>
+                  </div>
+                )}
+
+                {memorial.dataMorte && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500">
+                      {/* Ícone falecimento */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 text-black"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M11 2h2v20h-2zM4 7h16v2H4z" />
+                      </svg>
+                    </span>
+                    <span>{new Date(memorial.dataMorte).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' - ')}</span>
+                  </div>
+                )}
+              </div>
               <div className="flex gap-2 flex-wrap mt-4">
                 <span className="inline-block px-3 py-1 bg-white/60 rounded-full text-sm">Sempre lembrado</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-background rounded-lg p-8 shadow-sm border border-muted">
-            <h2 className="text-2xl font-serif font-bold text-foreground mb-4">Biografia</h2>
-            <div className="prose prose-lg max-w-none text-foreground/80 whitespace-pre-wrap">{memorial.biografia}</div>
-          </div>
+          <Tabs defaultValue="biografia">
+            <TabsList>
+              <TabsTrigger value="biografia">Biografia</TabsTrigger>
+              <TabsTrigger value="galeriaFotos">Galeria de Memórias</TabsTrigger>
+            </TabsList>
+            <TabsContent value="biografia" className="pt-4">
+              {/* Biografia */}
+              <div className="bg-background rounded-lg p-8 shadow-sm border border-muted max-w-full">
+                <h2 className="text-2xl font-serif font-bold text-foreground mb-4">Biografia</h2>
+                <div className="prose prose-lg max-w-none text-foreground/80 whitespace-pre-wrap">{memorial.biografia}</div>
+              </div>
+            </TabsContent>
+            <TabsContent value="galeriaFotos" className="pt-4">
+              {((memorial.galeriaFotos && memorial.galeriaFotos.length > 0) || (memorial.galeriaVideos && memorial.galeriaVideos.length > 0)) && (
+                <MemorialGallery
+                  fotos={memorial.galeriaFotos || []}
+                  videos={memorial.galeriaVideos || []}
+                  nome={memorial.nome}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </section>
 
-        {/* Gallery */}
-        {( (memorial.galeriaFotos && memorial.galeriaFotos.length > 0) || (memorial.galeriaVideos && memorial.galeriaVideos.length > 0)) && (
-          <MemorialGallery 
-            fotos={memorial.galeriaFotos || []} 
-            videos={memorial.galeriaVideos || []}
-            nome={memorial.nome} 
-          />
-        )}
 
         {/* Causa da Morte */}
         {memorial.causaMorte && (
-          <section className="mt-16">
+          <section className="mt-6">
             <div className="bg-background rounded-lg p-8 shadow-sm border border-muted">
               <h2 className="text-2xl font-serif font-bold text-foreground mb-4">Causa da Morte</h2>
               <div className="prose prose-lg max-w-none text-foreground/80 whitespace-pre-wrap">{memorial.causaMorte}</div>
@@ -128,7 +167,7 @@ export default function MemorialPage() {
         <MemorialComments memorialSlug={slug} />
 
         {/* Footer Section */}
-        <section className="mt-16 pt-12 border-t border-muted text-center">
+        <section className="mt-12 pt-12 border-t border-muted text-center">
           <p className="text-foreground/60 mb-4">Este memorial foi criado em honra a {memorial.nome}.</p>
           <p className="text-sm text-foreground/50">Compartilhe estas memórias com quem você ama.</p>
         </section>
