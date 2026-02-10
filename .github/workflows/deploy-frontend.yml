@@ -24,16 +24,16 @@ jobs:
             set -e
 
             # Clona ou atualiza o repositório
-            if [ ! -d "/root/memorial-sass-adm/.git" ]; then
-              rm -rf /root/memorial-sass-adm
-              git clone https://github.com/${{ github.repository }} /root/memorial-sass-adm
+            if [ ! -d "/home/david/memorial-sass-adm/.git" ]; then
+              rm -rf /home/david/memorial-sass-adm
+              git clone https://github.com/${{ github.repository }} /home/david/memorial-sass-adm
             else
-              cd /root/memorial-sass-adm
+              cd /home/david/memorial-sass-adm
               git fetch origin main
               git reset --hard origin/main
             fi
 
-            cd /root/memorial-sass-adm
+            cd /home/david/memorial-sass-adm
 
             # Cria o .env
             echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env
